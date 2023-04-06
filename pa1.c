@@ -34,6 +34,7 @@
 int run_command(int nr_tokens, char *tokens[])
 {
 	pid_t pid;
+	//int ch;
 
 	if(strcmp(tokens[0], "exit") == 0) return 0;
 
@@ -42,17 +43,24 @@ int run_command(int nr_tokens, char *tokens[])
 		pid = fork();
 		if(pid == 0) // child process
 		{	
-			if(execvp(tokens[0], tokens) == -1)
+			if((execvp(tokens[0], tokens) == -1) && (strcmp(tokens[0], "cd") != 0))
 			{
 				fprintf(stderr, "Unable to execute %s\n", tokens[0]);
 				return 1;
 			}
 			else
-				execlp(tokens[0], tokens[0], NULL);		
+			{
+				if(strcmp(tokens[0], "cd") == 0)
+				{
+					chdir(tokens[1]);
+				}
+				else{
+					execlp(tokens[0], tokens[0], NULL);
+				}
+			}		
 		}
 		else if(pid > 1) // parent process
 		{
-		//printf("%d", pid);
 			wait(NULL);
 		}
 		else // fork error
