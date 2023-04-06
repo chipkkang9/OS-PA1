@@ -61,14 +61,10 @@ int run_command(int nr_tokens, char *tokens[])
 	{
 		if(pid == 0)
 		{
-			if((execvp(tokens[0], tokens) == -1))
+			if(execvp(tokens[0], tokens) == -1)
 			{
 				fprintf(stderr, "Unable to execute %s\n", tokens[0]);
-				return 1;
-			}
-			else
-			{
-				execlp(tokens[0], tokens[0], NULL);
+				exit(1);
 			}
 		}
 		else if(pid == -1)
