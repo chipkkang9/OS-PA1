@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -34,44 +35,56 @@
 int run_command(int nr_tokens, char *tokens[])
 {
 	pid_t pid;
-	//int ch;
+	
+	if(strcmp(tokens[0], "cd") == 0)
+	{
+		if(nr_tokens == 1)
+		{
+			chdir(getenv("HOME"));
+		}
+		else if((nr_tokens == 2) && (strcmp(tokens[1], "~") == 0))
+		{
+			chdir(getenv("HOME"));
+		}
+		else
+		{
+			chdir(tokens[1]);
+		}
+		return 1;
+	}
+
+	pid = fork();
 
 	if(strcmp(tokens[0], "exit") == 0) return 0;
 
 	else
 	{
-		pid = fork();
-		if(pid == 0) // child process
-		{	
-			if((execvp(tokens[0], tokens) == -1) && (strcmp(tokens[0], "cd") != 0))
+		if(pid == 0)
+		{
+			if((execvp(tokens[0], tokens) == -1))
 			{
 				fprintf(stderr, "Unable to execute %s\n", tokens[0]);
 				return 1;
 			}
 			else
 			{
-				if(strcmp(tokens[0], "cd") == 0)
-				{
-					chdir(tokens[1]);
-				}
-				else{
-					execlp(tokens[0], tokens[0], NULL);
-				}
-			}		
+				execlp(tokens[0], tokens[0], NULL);
+			}
 		}
-		else if(pid > 1) // parent process
+		else if(pid == -1)
 		{
-			wait(NULL);
+			perror("fork");
+			return -1;
 		}
-		else // fork error
-		{
-			printf("error!");
-			return 1;
+		else{
+			int status;
+			waitpid(pid, &status, 0);
 		}
+		
 	}
+
 	return 1;
 }
-
 
 /***********************************************************************
  * initialize()
